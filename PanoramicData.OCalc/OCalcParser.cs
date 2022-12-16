@@ -17,6 +17,7 @@ internal class OCalcParser
 
 		var parameters = new List<Token>();
 		Token? @operator = null;
+		var indexMode = false;
 		foreach (var token in lexResult.Tokens)
 		{
 			switch (token.Type)
@@ -25,9 +26,26 @@ internal class OCalcParser
 					parameters.Add(token);
 					break;
 				case TokenType.Operator:
+					switch (token.Text)
+					{
+						case "[":
+							indexMode = true;
+							continue;
+						case "]":
+							if (indexMode)
+							{
+								indexMode = false;
+								@operator = new Token("atIndex", TokenType.Operator);
+								continue;
+							}
+
+							throw new ParseException("Unexpected ]");
+					}
+
 					@operator = token;
 					break;
 				case TokenType.Identifier:
+					parameters.Add(token);
 					break;
 				case TokenType.String:
 					break;

@@ -31,8 +31,8 @@ public class BasicParseTests
 		)
 	]
 	[InlineData(
-		"a[1] // 2",
-		"1;a;atIndex"
+		"a[1]",
+		"a;1;atIndex"
 		)
 	]
 	[InlineData(
