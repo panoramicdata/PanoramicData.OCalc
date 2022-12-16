@@ -22,32 +22,32 @@ public class BasicParseTests
 	]
 	[InlineData(
 		"set(a, 1)",
-		"a;1;Root.set;execute"
+		"a;1;_.set"
 		)
 	]
 	[InlineData(
 		"set(a, [1, 2, 3])",
-		"a;+level;1;2;3;[];-level;set"
+		"a;+level;1;2;3;[];-level;_.set"
 		)
 	]
 	[InlineData(
 		"a[1]",
-		"a;1;atIndex"
+		"a;1;_.atIndex"
 		)
 	]
 	[InlineData(
 		"delay(<TimeSpan>.fromSeconds(1))",
-		"1;TimeSpan.fromSeconds;execute;Root.delay;execute"
+		"1;TimeSpan.fromSeconds;Root.delay;execute"
 		)
 	]
 	[InlineData(
 		"<Task>.DelayAsync(1000)",
-		"1000;Task.DelayAsync;execute"
+		"1000;Task.DelayAsync"
 		)
 	]
 	[InlineData(
 		"<MerakiClient>(<MerakiClientOptions>('apiKey'))",
-		"'apiKey';MerakiClientOptions.new;staticExecute;MerakiClient.new"
+		"'apiKey';MerakiClientOptions.new;MerakiClient.new"
 		)
 	]
 	[InlineData(
@@ -57,7 +57,7 @@ public class BasicParseTests
 	]
 	[InlineData(
 		"a == 1 ? b : c",
-		"a;1;==;b;c;ternary"
+		"a;1;==;b;c;_.if"
 		)
 	]
 	public void ParseTests(string expressionText, string rpnTokens)

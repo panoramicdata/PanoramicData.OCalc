@@ -5,5 +5,6 @@ public enum TokenType
 	Number,
 	Identifier,
 	Operator,
-	String
+	String,
+	Function
 }

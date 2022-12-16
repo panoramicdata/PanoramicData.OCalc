@@ -17,55 +17,79 @@ internal class OCalcParser
 
 		var parameters = new List<Token>();
 		Token? @operator = null;
-		var indexMode = false;
+		var parseMode = ParseMode.None;
 		foreach (var token in lexResult.Tokens)
 		{
 			switch (token.Type)
 			{
 				case TokenType.Number:
+				case TokenType.Identifier:
+				case TokenType.String:
 					parameters.Add(token);
+					if (parseMode == ParseMode.TernaryTerm2)
+					{
+						var newToken = new Token("_.if", TokenType.Function);
+						AddParametersAndOperator(parseResult.Tokens, parameters, ref newToken);
+						parseMode = ParseMode.None;
+					}
+
 					break;
 				case TokenType.Operator:
 					switch (token.Text)
 					{
 						case "[":
-							indexMode = true;
+							parseMode = ParseMode.Index;
 							continue;
 						case "]":
-							if (indexMode)
+							if (parseMode != ParseMode.Index)
 							{
-								indexMode = false;
-								@operator = new Token("atIndex", TokenType.Operator);
-								continue;
+								throw new ParseException("Unexpected ]");
 							}
 
-							throw new ParseException("Unexpected ]");
+							parseMode = ParseMode.None;
+							@operator = new Token("_.atIndex", TokenType.Function);
+							continue;
+						case "?":
+							AddParametersAndOperator(parseResult.Tokens, parameters, ref @operator);
+							parseMode = ParseMode.TernaryTerm1;
+							continue;
+						case ":":
+							if (parseMode != ParseMode.TernaryTerm1)
+							{
+								throw new ParseException("Unexpected :");
+							}
+
+							parseMode = ParseMode.TernaryTerm2;
+
+							continue;
 					}
 
 					@operator = token;
-					break;
-				case TokenType.Identifier:
-					parameters.Add(token);
-					break;
-				case TokenType.String:
 					break;
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
 		}
 
-		if (@operator is not null)
-		{
-			foreach (var parameter in parameters)
-			{
-				parseResult.Tokens.Add(parameter);
-			}
-
-			parseResult.Tokens.Add(@operator);
-		}
+		AddParametersAndOperator(parseResult.Tokens, parameters, ref @operator);
 
 		parseResult.Success = true;
 
 		return parseResult;
+	}
+
+	private static void AddParametersAndOperator(List<Token> tokens, List<Token> parameters, ref Token? @operator)
+	{
+		if (@operator is not null)
+		{
+			foreach (var parameter in parameters)
+			{
+				tokens.Add(parameter);
+			}
+
+			tokens.Add(@operator);
+			parameters.Clear();
+			@operator = null;
+		}
 	}
 }
