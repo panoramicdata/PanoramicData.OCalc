@@ -2,6 +2,7 @@
 
 namespace PanoramicData.OCalc.Test.Lexing;
 
+[Trait("Lexing", "Number detection")]
 public class IsNumberTests
 {
 	[Theory]

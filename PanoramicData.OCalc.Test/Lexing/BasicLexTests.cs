@@ -1,9 +1,14 @@
 using FluentAssertions;
+using Xunit.Abstractions;
 
 namespace PanoramicData.OCalc.Test.Lexing;
 
-public class BasicLexTests
+public class BasicLexTests : BaseTest
 {
+	public BasicLexTests(ITestOutputHelper helper) : base(helper)
+	{
+	}
+
 	[Theory]
 	[InlineData(
 		"1",
@@ -44,6 +49,16 @@ public class BasicLexTests
 		TokenType.Operator,
 		TokenType.Number)
 	]
+	[InlineData("(1 + 2) / 3",
+		"(;1;+;2;);/;3",
+		TokenType.Operator,
+		TokenType.Number,
+		TokenType.Operator,
+		TokenType.Number,
+		TokenType.Operator,
+		TokenType.Operator,
+		TokenType.Number)
+	]
 	[InlineData("a == 1 ? b : c",
 		"a;==;1;?;b;:;c",
 		TokenType.Identifier,
@@ -64,6 +79,7 @@ public class BasicLexTests
 		TokenType.Number,
 		TokenType.Operator)
 	]
+	[Trait("Lexing", "Tokenization")]
 	public void TokenizationTests(
 		string expressionText,
 		string tokenTexts,

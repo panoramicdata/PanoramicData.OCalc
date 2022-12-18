@@ -1,9 +1,14 @@
 using FluentAssertions;
+using Xunit.Abstractions;
 
 namespace PanoramicData.OCalc.Test.Parsing;
 
-public class BasicParseTests
+public class BasicParseTests : BaseTest
 {
+	public BasicParseTests(ITestOutputHelper helper) : base(helper)
+	{
+	}
+
 	[Theory]
 	[InlineData(
 		"1 + 2",
@@ -37,12 +42,17 @@ public class BasicParseTests
 	]
 	[InlineData(
 		"delay(<TimeSpan>.fromSeconds(1))",
-		"1;TimeSpan.fromSeconds;Root.delay;execute"
+		"1;TimeSpan.FromSeconds;Task.DelayAsync"
 		)
 	]
 	[InlineData(
 		"<Task>.DelayAsync(1000)",
 		"1000;Task.DelayAsync"
+		)
+	]
+	[InlineData(
+		"<Math>.Max(1,2)",
+		"1;2;Math.Max"
 		)
 	]
 	[InlineData(
@@ -52,7 +62,7 @@ public class BasicParseTests
 	]
 	[InlineData(
 		"a ?? b ?? c",
-		"a;b;nullCoalesc;c;nullCoalesce"
+		"a;b;??;c;??"
 		)
 	]
 	[InlineData(
@@ -60,6 +70,7 @@ public class BasicParseTests
 		"a;1;==;b;c;_.if"
 		)
 	]
+	[Trait("Parsing", "Basic")]
 	public void ParseTests(string expressionText, string rpnTokens)
 	{
 		var lexResult = OCalcLexer.Lex(expressionText);

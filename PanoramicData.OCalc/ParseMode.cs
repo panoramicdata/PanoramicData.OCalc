@@ -5,6 +5,12 @@
 		None,
 		Index,
 		TernaryTerm1,
-		TernaryTerm2
+		TernaryTerm2,
+		PendingOperator,
+		PossibleClassDefinition,
+		ClassDefinition,
+		PossibleMethodDefinition,
+		MethodDefinition,
+		ParameterList
 	}
 }

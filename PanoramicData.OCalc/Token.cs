@@ -2,7 +2,7 @@
 
 namespace PanoramicData.OCalc;
 
-[DebuggerDisplay("{Type}: {Text}")]
+[DebuggerDisplay("{Type}:{Text}")]
 internal class Token
 {
 	public TokenType Type { get; private set; }
@@ -19,4 +19,6 @@ internal class Token
 		Text = tokenText;
 		Type = tokenType;
 	}
+
+	public override string ToString() => $"{Type}:{Text}";
 }

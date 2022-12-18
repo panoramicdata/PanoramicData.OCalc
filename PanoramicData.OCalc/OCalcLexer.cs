@@ -24,6 +24,7 @@ internal class OCalcLexer
 					case '\n':
 						HandlePossibleTwoCharOperatorMode(
 							ref twoCharOperatorMode,
+							ref commentMode,
 							lexResult.Tokens,
 							currentTokenText
 						);
@@ -39,6 +40,7 @@ internal class OCalcLexer
 					case '.':
 						HandlePossibleTwoCharOperatorMode(
 							ref twoCharOperatorMode,
+							ref commentMode,
 							lexResult.Tokens,
 							currentTokenText
 						);
@@ -57,6 +59,7 @@ internal class OCalcLexer
 					case '\'':
 						HandlePossibleTwoCharOperatorMode(
 							ref twoCharOperatorMode,
+							ref commentMode,
 							lexResult.Tokens,
 							currentTokenText
 						);
@@ -74,6 +77,7 @@ internal class OCalcLexer
 					case '\\':
 						HandlePossibleTwoCharOperatorMode(
 							ref twoCharOperatorMode,
+							ref commentMode,
 							lexResult.Tokens,
 							currentTokenText
 						);
@@ -183,6 +187,7 @@ internal class OCalcLexer
 					default:
 						HandlePossibleTwoCharOperatorMode(
 							ref twoCharOperatorMode,
+							ref commentMode,
 							lexResult.Tokens,
 							currentTokenText
 						);
@@ -203,6 +208,7 @@ internal class OCalcLexer
 			{
 				HandlePossibleTwoCharOperatorMode(
 					ref twoCharOperatorMode,
+					ref commentMode,
 					lexResult.Tokens,
 					currentTokenText
 				);
@@ -225,6 +231,7 @@ internal class OCalcLexer
 
 	private static void HandlePossibleTwoCharOperatorMode(
 		ref TwoCharOperatorMode twoCharOperatorMode,
+		ref CommentMode commentMode,
 		List<Token> tokens,
 		StringBuilder text)
 	{
@@ -232,6 +239,13 @@ internal class OCalcLexer
 		{
 			twoCharOperatorMode = TwoCharOperatorMode.None;
 			tokens.Add(new Token(text.ToString(), TokenType.Operator));
+			text.Clear();
+		}
+
+		if (commentMode == CommentMode.Possible)
+		{
+			commentMode = CommentMode.None;
+			tokens.Add(new Token("/", TokenType.Operator));
 			text.Clear();
 		}
 	}
