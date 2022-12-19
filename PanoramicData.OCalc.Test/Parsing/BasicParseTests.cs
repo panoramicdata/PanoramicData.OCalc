@@ -11,6 +11,11 @@ public class BasicParseTests : BaseTest
 
 	[Theory]
 	[InlineData(
+		"1 + 2 * sin(a + b * c) + 4",
+		"_.+(_.+(1, _.*(2, Math.Sin(_.+(a, _.*(b, c)))), 4)"
+		)
+	]
+	[InlineData(
 		"1 + 2",
 		"_.+(1, 2)"
 		)

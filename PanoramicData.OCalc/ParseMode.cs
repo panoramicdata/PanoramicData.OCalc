@@ -11,7 +11,6 @@
 		ClassDefinition,
 		MethodDefinition,
 		ParameterList,
-		NullCoalesce,
 		UnknownIdentifier
 	}
 }

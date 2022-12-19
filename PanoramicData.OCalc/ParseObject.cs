@@ -1,6 +1,6 @@
 ﻿namespace PanoramicData.OCalc
 {
-	internal class ParseObject : ParseNode
+	internal class ParseObject : ParseNode, IComparable
 	{
 		public static ParseObject Root { get; } = new();
 
@@ -22,6 +22,8 @@
 
 		public List<ParseNode> Parameters { get; } = new();
 		private Token? _identifierToken;
+
+		private Stack<ParseObject> PendingOperators = new();
 
 		internal void AddParameter(ParseNode value)
 		{
@@ -151,7 +153,6 @@
 						case "??":
 							ClassName = "_";
 							MethodName = "NullCoalesce";
-							ParseMode = ParseMode.NullCoalesce;
 							return this;
 						case "==":
 							ClassName = "_";
@@ -197,6 +198,7 @@
 							{
 								Parameters.Add(new IdentifierParseNode(_identifierToken!.Text));
 							}
+
 							ParseMode = ParseMode.ParameterList;
 							return this;
 						case "?":
@@ -218,5 +220,19 @@
 		public override string ToString()
 			=> ClassAndMethod == string.Empty ? string.Join(", ", Parameters)
 				: $"{ClassAndMethod}({string.Join(", ", Parameters)})";
+
+		public int CompareTo(object? obj)
+		{
+			if (obj as ParseObject is not { } other)
+			{
+				throw new InvalidOperationException("Cannot compare to non-parse object");
+			}
+
+			return other.ClassAndMethod switch
+			{
+				"_.+" or "_.-" => 0,
+				_ => 1,
+			};
+		}
 	}
 }
