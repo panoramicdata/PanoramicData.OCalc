@@ -62,7 +62,7 @@ public class BasicParseTests : BaseTest
 	]
 	[InlineData(
 		"delay(<TimeSpan>.FromSeconds(1))",
-		"Task.DelayAsync(TimeSpan.FromSeconds(1))"
+		"_.Delay(TimeSpan.FromSeconds(1))"
 		)
 	]
 	[InlineData(
@@ -82,7 +82,7 @@ public class BasicParseTests : BaseTest
 	]
 	[InlineData(
 		"a ?? b ?? c",
-		"_.NullCoalesce(a, b, c))"
+		"_.NullCoalesce(a, b, c)"
 		)
 	]
 	[InlineData(

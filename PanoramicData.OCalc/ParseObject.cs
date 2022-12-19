@@ -21,6 +21,7 @@
 			: $"{ClassName}.{(MethodName == string.Empty ? "ctor" : MethodName)}";
 
 		public List<ParseNode> Parameters { get; } = new();
+		private Token? _identifierToken;
 
 		internal void AddParameter(ParseNode value)
 		{
@@ -30,6 +31,10 @@
 
 		internal void Close()
 		{
+			if (ParseMode == ParseMode.UnknownIdentifier)
+			{
+				Parameters.Add(new IdentifierParseNode(_identifierToken.Text));
+			}
 		}
 
 		internal ParseObject AddToken(Token token)
@@ -48,7 +53,8 @@
 							SetClassAndMethod(ClassName, token.Text);
 							return this;
 						default:
-							Parameters.Add(new IdentifierParseNode(token.Text));
+							_identifierToken = token;
+							ParseMode = ParseMode.UnknownIdentifier;
 							return this;
 					}
 				case TokenType.Boolean:
@@ -64,10 +70,22 @@
 					switch (token.Text)
 					{
 						case "(":
+							if (ParseMode == ParseMode.UnknownIdentifier)
+							{
+								ClassName = "_";
+								MethodName = _identifierToken!.Text;
+							}
+
 							var newParseObject = new ParseObject();
 							AddParameter(newParseObject);
+							ParseMode = ParseMode.None;
 							return newParseObject;
 						case ")":
+							if (ParseMode == ParseMode.UnknownIdentifier)
+							{
+								Parameters.Add(new IdentifierParseNode(_identifierToken!.Text));
+							}
+
 							Close();
 							return Parent;
 						case "<":
@@ -92,15 +110,24 @@
 						case ".":
 							switch (ParseMode)
 							{
+								case ParseMode.UnknownIdentifier:
+									ClassName = _identifierToken!.Text;
+									ParseMode = ParseMode.MethodDefinition;
+									return this;
 								case ParseMode.MethodDefinition:
 									return this;
 								default:
 									throw new ParseException(ParseMode, token);
 							}
 						case "[":
-							var parseObject = new ParseObject();
 							switch (ParseMode)
 							{
+								case ParseMode.UnknownIdentifier:
+									ClassName = "_";
+									MethodName = "[]";
+									Parameters.Add(new IdentifierParseNode(_identifierToken!.Text));
+									ParseMode = ParseMode.OpenSquare;
+									return this;
 								case ParseMode.None:
 									ParseMode = ParseMode.OpenSquare;
 									return this;
@@ -166,6 +193,10 @@
 							MethodName = "Not";
 							return this;
 						case ",":
+							if (ParseMode == ParseMode.UnknownIdentifier)
+							{
+								Parameters.Add(new IdentifierParseNode(_identifierToken!.Text));
+							}
 							ParseMode = ParseMode.ParameterList;
 							return this;
 						case "?":
