@@ -3,14 +3,15 @@
 	internal enum ParseMode
 	{
 		None,
-		Index,
+		OpenSquare,
 		TernaryTerm1,
 		TernaryTerm2,
 		PendingOperator,
 		PossibleClassDefinition,
 		ClassDefinition,
-		PossibleMethodDefinition,
 		MethodDefinition,
-		ParameterList
+		ParameterList,
+		NullCoalesce,
+		UnknownIdentifier
 	}
 }

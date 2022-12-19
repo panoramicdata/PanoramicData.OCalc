@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using PanoramicData.OCalc.Extensions;
+using System.Text;
 
 namespace PanoramicData.OCalc;
 
@@ -32,7 +33,7 @@ internal class OCalcLexer
 						// Add the current token to the list
 						if (currentTokenText.Length > 0)
 						{
-							lexResult.Tokens.Add(GetToken(currentTokenText.ToString()));
+							lexResult.Tokens.AddRange(GetTokens(currentTokenText.ToString()));
 							currentTokenText.Clear();
 						}
 
@@ -91,6 +92,7 @@ internal class OCalcLexer
 
 						isEscaped = true;
 						break;
+					case '&':
 					case '|':
 					case '^':
 					case '!':
@@ -124,7 +126,7 @@ internal class OCalcLexer
 							case ']':
 								if (currentTokenText.Length > 0)
 								{
-									lexResult.Tokens.Add(GetToken(currentTokenText.ToString()));
+									lexResult.Tokens.AddRange(GetTokens(currentTokenText.ToString()));
 									currentTokenText.Clear();
 								}
 
@@ -146,7 +148,7 @@ internal class OCalcLexer
 							switch (twoCharOperatorMode)
 							{
 								case TwoCharOperatorMode.None:
-									lexResult.Tokens.Add(GetToken(currentTokenText.ToString()));
+									lexResult.Tokens.AddRange(GetTokens(currentTokenText.ToString()));
 									currentTokenText.Clear();
 									lexResult.Tokens.Add(new Token(c, TokenType.Operator));
 									break;
@@ -167,7 +169,7 @@ internal class OCalcLexer
 											break;
 										default:
 											var currentText = currentTokenText.ToString();
-											lexResult.Tokens.Add(GetToken(currentText));
+											lexResult.Tokens.AddRange(GetTokens(currentText));
 											break;
 									}
 
@@ -213,7 +215,7 @@ internal class OCalcLexer
 					currentTokenText
 				);
 
-				lexResult.Tokens.Add(GetToken(currentTokenText.ToString()));
+				lexResult.Tokens.AddRange(GetTokens(currentTokenText.ToString()));
 				currentTokenText.Clear();
 			}
 
@@ -250,8 +252,32 @@ internal class OCalcLexer
 		}
 	}
 
-	private static Token GetToken(string text)
-		=> new(text, IsNumber(text) ? TokenType.Number : TokenType.Identifier);
+	private static List<Token> GetTokens(string text)
+	{
+		if (IsNumber(text))
+		{
+			return new List<Token> { new Token(text, TokenType.Number) };
+		}
+
+		if (IsBoolean(text))
+		{
+			return new List<Token> { new Token(text, TokenType.Boolean) };
+		}
+
+		return text switch
+		{
+			"delay" or "set" or "log" or "list" or "if" => new List<Token>
+				{
+					new Token("_", TokenType.Identifier),
+					new Token(".", TokenType.Operator),
+					new Token(text.UpperCaseFirstLetter(), TokenType.Identifier),
+				},
+			_ => new List<Token> { new Token(text, TokenType.Identifier) },
+		};
+	}
+
+	private static bool IsBoolean(string text)
+		=> text == "true" || text == "false";
 
 	internal static bool IsNumber(string currentTokenText)
 	{

@@ -17,7 +17,9 @@ public class BasicLexTests : BaseTest
 		)
 	]
 	[InlineData("	set(a, 1) // true",
-		"set;(;a;,;1;)",
+		"_;.;Set;(;a;,;1;)",
+		TokenType.Identifier,
+		TokenType.Operator,
 		TokenType.Identifier,
 		TokenType.Operator,
 		TokenType.Identifier,
@@ -69,7 +71,8 @@ public class BasicLexTests : BaseTest
 		TokenType.Operator,
 		TokenType.Identifier)
 	]
-	[InlineData("[1, 2, 3]",
+	[InlineData(
+		"[1, 2, 3]",
 		"[;1;,;2;,;3;]",
 		TokenType.Operator,
 		TokenType.Number,
@@ -78,6 +81,13 @@ public class BasicLexTests : BaseTest
 		TokenType.Operator,
 		TokenType.Number,
 		TokenType.Operator)
+	]
+	[InlineData(
+		"true && false",
+		"true;&&;false",
+		TokenType.Boolean,
+		TokenType.Operator,
+		TokenType.Boolean)
 	]
 	[Trait("Lexing", "Tokenization")]
 	public void TokenizationTests(

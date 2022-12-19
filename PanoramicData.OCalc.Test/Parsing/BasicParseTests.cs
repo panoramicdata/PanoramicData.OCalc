@@ -12,77 +12,103 @@ public class BasicParseTests : BaseTest
 	[Theory]
 	[InlineData(
 		"1 + 2",
-		"1;2;+"
+		"_.+(1, 2)"
 		)
 	]
 	[InlineData(
 		"1 + 2 / 3",
-		"1;+level;2;3;/;-level;+"
+		"_.+(1, _./(2, 3))"
 		)
 	]
 	[InlineData(
 		"(1 + 2) / 3",
-		"1;2;+;3;/"
+		"_./(_.+(1, 2), 3)"
 		)
 	]
 	[InlineData(
 		"set(a, 1)",
-		"a;1;_.set"
+		"_.Set(a, 1)"
 		)
 	]
 	[InlineData(
-		"set(a, [1, 2, 3])",
-		"a;+level;1;2;3;[];-level;_.set"
+		"log('woo')",
+		"_.Log('woo')"
+		)
+	]
+	[InlineData(
+		"true && false",
+		"_.&&(true, false)"
+		)
+	]
+	[InlineData(
+		"log('a') && log('b')",
+		"_.&&(_.Log(a), _.Log(b))"
+		)
+	]
+	[InlineData(
+		"1, 2, 3",
+		"1, 2, 3"
+		)
+	]
+	[InlineData(
+		"set('a', list(1, 2, 3))",
+		"_.Set(a, _.List(1, 2, 3))"
 		)
 	]
 	[InlineData(
 		"a[1]",
-		"a;1;_.atIndex"
+		"_.AtIndex(a, 1)"
 		)
 	]
 	[InlineData(
-		"delay(<TimeSpan>.fromSeconds(1))",
-		"1;TimeSpan.FromSeconds;Task.DelayAsync"
+		"delay(<TimeSpan>.FromSeconds(1))",
+		"Task.DelayAsync(TimeSpan.FromSeconds(1))"
 		)
 	]
 	[InlineData(
 		"<Task>.DelayAsync(1000)",
-		"1000;Task.DelayAsync"
+		"Task.DelayAsync(1000)"
 		)
 	]
 	[InlineData(
 		"<Math>.Max(1,2)",
-		"1;2;Math.Max"
+		"Math.Max(1, 2)"
 		)
 	]
 	[InlineData(
 		"<MerakiClient>(<MerakiClientOptions>('apiKey'))",
-		"'apiKey';MerakiClientOptions.new;MerakiClient.new"
+		"MerakiClient.ctor(MerakiClientOptions.ctor('apiKey'))"
 		)
 	]
 	[InlineData(
 		"a ?? b ?? c",
-		"a;b;??;c;??"
+		"_.NullCoalesce(a, b, c))"
 		)
 	]
 	[InlineData(
 		"a == 1 ? b : c",
-		"a;1;==;b;c;_.if"
+		"_.If(_.Equals(a, 1), b, c)"
+		)
+	]
+	[InlineData(
+		"a == 1",
+		"_.Equals(a, 1)"
+		)
+	]
+	[InlineData(
+		"!a",
+		"_.Not(a)"
 		)
 	]
 	[Trait("Parsing", "Basic")]
-	public void ParseTests(string expressionText, string rpnTokens)
+	public void ParseTests(string expressionText, string expectedExecutionString)
 	{
 		var lexResult = OCalcLexer.Lex(expressionText);
 		lexResult.Type.Should().Be(LexResultType.Success);
 
 		var parseResult = OCalcParser.Parse(lexResult);
+		parseResult.FailureText.Should().BeEmpty();
 		parseResult.Success.Should().BeTrue();
-
-		parseResult
-			.Tokens
-			.Select(t => t.Text)
-			.Should()
-			.BeEquivalentTo(rpnTokens.Split(';'));
+		parseResult.ParseObject.ToString().Should().Be(expectedExecutionString);
 	}
 }
