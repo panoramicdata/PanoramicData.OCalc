@@ -103,6 +103,18 @@ public class BasicLexTests : BaseTest
 		TokenType.Number,
 		TokenType.Operator)
 	]
+	[InlineData(
+		"Task.Delay(TimeSpan.FromSeconds(1))",
+		"Task.Delay;(;TimeSpan.FromSeconds;(;1;);)",
+		TokenType.Identifier,
+		TokenType.Operator,
+		TokenType.Identifier,
+		TokenType.Operator,
+		TokenType.Number,
+		TokenType.Operator,
+		TokenType.Operator
+		)
+	]
 	[Trait("Lexing", "Tokenization")]
 	public void TokenizationTests(
 		string expressionText,

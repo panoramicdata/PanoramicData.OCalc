@@ -16,7 +16,7 @@ public class BasicParseTests : BaseTest
 		)
 	]
 	[InlineData(
-		"1 + 2 * sin(a + b * c) + 4",
+		"1 + 2 * Math.Sin(a + b * c) + 4",
 		"_.+(_.+(1, _.*(2, Math.Sin(_.+(a, _.*(b, c)))), 4)"
 		)
 	]
@@ -66,8 +66,8 @@ public class BasicParseTests : BaseTest
 		)
 	]
 	[InlineData(
-		"delay(TimeSpan.FromSeconds(1))",
-		"_.Delay(TimeSpan.FromSeconds(1))"
+		"Task.Delay(TimeSpan.FromSeconds(1))",
+		"Task.Delay(TimeSpan.FromSeconds(1))"
 		)
 	]
 	[InlineData(
@@ -92,7 +92,7 @@ public class BasicParseTests : BaseTest
 	]
 	[InlineData(
 		"a == 1 ? b : c",
-		"_.If(_.Equals(a, 1), b, c)"
+		"_.If(_.==(a, 1), b, c)"
 		)
 	]
 	[InlineData(

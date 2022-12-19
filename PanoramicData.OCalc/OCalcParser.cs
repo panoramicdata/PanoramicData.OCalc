@@ -20,7 +20,8 @@ internal class OCalcParser
 		{
 			Success = true
 		};
-		FunctionParseNode currentParseNode = parseResult.ParseNode;
+
+		var currentParseNode = new FunctionParseNode();
 		try
 		{
 			foreach (var token in lexResult.Tokens)
@@ -30,23 +31,6 @@ internal class OCalcParser
 					case TokenType.Number:
 					case TokenType.Boolean:
 					case TokenType.String:
-						if (currentParseNode.IsEmptyOrComplete)
-						{
-							var functionParseNode1 = new FunctionParseNode
-							{
-								Parent = currentParseNode,
-							};
-							functionParseNode1.Parameters.Add(
-								new ConstantParseNode(token)
-								{
-									Parent = functionParseNode1
-								}
-							);
-							currentParseNode.Parameters.Add(functionParseNode1);
-							currentParseNode = functionParseNode1;
-							break;
-						}
-
 						currentParseNode.Parameters.Add(
 									new ConstantParseNode(token)
 									{
@@ -55,28 +39,30 @@ internal class OCalcParser
 								);
 						break;
 					case TokenType.Identifier:
-						if (currentParseNode.IdentifierToken is not null)
-						{
-							throw new ParseException($"Unexpected second identifier {token.Text}.");
-						}
-
+						currentParseNode.PromoteIdentifierIfRequired();
 						currentParseNode.IdentifierToken = token;
 						break;
 					case TokenType.Operator:
 						switch (token.Text)
 						{
 							case "(":
-								currentParseNode.PromoteIdentifierIfRequired();
-								var newFunctionParseNode = new FunctionParseNode
+								if (currentParseNode.Method is null)
 								{
-									Parent = currentParseNode
-								};
-								currentParseNode.Parameters.Add(newFunctionParseNode);
-								currentParseNode = newFunctionParseNode;
+									currentParseNode.PromoteIdentifierIfRequired();
+									var newFunctionParseNode = new FunctionParseNode
+									{
+										Parent = currentParseNode
+									};
+									currentParseNode.Parameters.Add(newFunctionParseNode);
+									currentParseNode = newFunctionParseNode;
+									break;
+								}
+
 								break;
 
 							case ")":
-								currentParseNode = currentParseNode.Parent ?? throw new ParseException("Unmatched )");
+								currentParseNode.IsComplete = true;
+								currentParseNode = currentParseNode.Parent ?? throw new ParseException("Null parent on )");
 								break;
 
 							case "[":
@@ -95,6 +81,28 @@ internal class OCalcParser
 
 								break;
 
+							case "?":
+								currentParseNode.PromoteIdentifierIfRequired();
+								// Make space.
+								var newFunction2 = new FunctionParseNode
+								{
+									Method = "_.If"
+								};
+								if (currentParseNode.Parent != currentParseNode)
+								{
+									newFunction2.Parent = currentParseNode.Parent;
+								}
+
+								newFunction2.Parameters.Add(currentParseNode);
+								currentParseNode.Parent = newFunction2;
+								currentParseNode = newFunction2;
+								break;
+
+							case ":":
+								currentParseNode.PromoteIdentifierIfRequired();
+								currentParseNode = currentParseNode.Parent ?? throw new ParseException("Missing parent");
+								break;
+
 							default:
 								currentParseNode.Method = string.IsNullOrWhiteSpace(currentParseNode.Method)
 									? "_." + token.Text
@@ -104,15 +112,48 @@ internal class OCalcParser
 
 						break;
 					case TokenType.StaticMethod:
-						if (currentParseNode.IsEmptyOrComplete)
+						if (currentParseNode.IsComplete)
 						{
-							var functionNode = new FunctionParseNode
+							// Are we at the root?
+							if (currentParseNode.Parent == currentParseNode)
+							{
+								// Yes.  Make space.
+								var newFunction2 = new FunctionParseNode();
+								newFunction2.Parameters.Add(currentParseNode);
+								currentParseNode.Parent = newFunction2;
+								currentParseNode = newFunction2;
+							}
+						}
+
+						if (currentParseNode.Method is not null)
+						{
+							currentParseNode.PromoteIdentifierIfRequired();
+
+							// Do we take precedence?
+							if (FirstIsLesserThanSecond(currentParseNode.Method, token.Text))
+							{
+								// Yes. Insert above
+								var newFunction3 = new FunctionParseNode
+								{
+									Method = token.Text,
+									Parent = currentParseNode
+								};
+								var stolenParameter = currentParseNode.Parameters.Last();
+								currentParseNode.Parameters.Remove(stolenParameter);
+								currentParseNode.Parameters.Add(newFunction3);
+								newFunction3.Parameters.Add(stolenParameter);
+								currentParseNode = newFunction3;
+								break;
+							}
+
+							// No.  Insert below
+							var newFunction2 = new FunctionParseNode
 							{
 								Parent = currentParseNode,
 								Method = token.Text
 							};
-							currentParseNode.Parameters.Add(functionNode);
-							currentParseNode = functionNode;
+							currentParseNode.Parameters.Add(newFunction2);
+							currentParseNode = newFunction2;
 							break;
 						}
 
@@ -127,6 +168,12 @@ internal class OCalcParser
 
 			currentParseNode.PromoteIdentifierIfRequired();
 
+			while (currentParseNode.Parent != currentParseNode)
+			{
+				currentParseNode = currentParseNode.Parent ?? throw new ParseException("Could not find node parent");
+			}
+
+			parseResult.ParseNode = currentParseNode;
 			parseResult.Success = true;
 		}
 		catch (ParseException exception)
@@ -137,4 +184,9 @@ internal class OCalcParser
 
 		return parseResult;
 	}
+
+	private static bool FirstIsLesserThanSecond(string first, string second) =>
+		(first == "_.+" || first == "_.-")
+		&&
+		!(second == "_.+" || second == "_.-");
 }
