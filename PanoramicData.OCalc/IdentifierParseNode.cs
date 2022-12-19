@@ -1,9 +1,12 @@
 ﻿namespace PanoramicData.OCalc
 {
-	internal class IdentifierParseNode : ValueParseNode
+	internal class IdentifierParseNode : ParseNode
 	{
-		public IdentifierParseNode(string value) : base(value)
+		public IdentifierParseNode(Token identifierToken)
 		{
+			IdentifierToken = identifierToken;
 		}
+
+		internal override string GetExpressionString() => IdentifierToken!.Text;
 	}
 }

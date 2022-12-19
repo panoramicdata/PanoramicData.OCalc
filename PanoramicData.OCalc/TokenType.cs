@@ -6,5 +6,6 @@ public enum TokenType
 	Identifier,
 	Operator,
 	String,
-	Boolean
+	Boolean,
+	StaticMethod
 }

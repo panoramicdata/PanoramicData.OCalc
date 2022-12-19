@@ -33,7 +33,7 @@ internal class OCalcLexer
 						// Add the current token to the list
 						if (currentTokenText.Length > 0)
 						{
-							lexResult.Tokens.AddRange(GetTokens(currentTokenText.ToString()));
+							lexResult.Tokens.Add(GetToken(currentTokenText.ToString()));
 							currentTokenText.Clear();
 						}
 
@@ -48,6 +48,13 @@ internal class OCalcLexer
 
 						// Are we mid-number?
 						if (currentTokenText.Length > 0 && IsInteger(currentTokenText.ToString()))
+						{
+							currentTokenText.Append(c);
+							break;
+						}
+
+						// Are we mid-identifier?
+						if (currentTokenText.Length > 0)
 						{
 							currentTokenText.Append(c);
 							break;
@@ -126,7 +133,7 @@ internal class OCalcLexer
 							case ']':
 								if (currentTokenText.Length > 0)
 								{
-									lexResult.Tokens.AddRange(GetTokens(currentTokenText.ToString()));
+									lexResult.Tokens.Add(GetToken(currentTokenText.ToString()));
 									currentTokenText.Clear();
 								}
 
@@ -148,7 +155,7 @@ internal class OCalcLexer
 							switch (twoCharOperatorMode)
 							{
 								case TwoCharOperatorMode.None:
-									lexResult.Tokens.AddRange(GetTokens(currentTokenText.ToString()));
+									lexResult.Tokens.Add(GetToken(currentTokenText.ToString()));
 									currentTokenText.Clear();
 									lexResult.Tokens.Add(new Token(c, TokenType.Operator));
 									break;
@@ -165,11 +172,11 @@ internal class OCalcLexer
 										case "&&":
 										case "?.":
 										case "==":
-											lexResult.Tokens.Add(new Token(compoundTokenString, TokenType.Operator));
+											lexResult.Tokens.Add(new Token("_." + compoundTokenString, TokenType.StaticMethod));
 											break;
 										default:
 											var currentText = currentTokenText.ToString();
-											lexResult.Tokens.AddRange(GetTokens(currentText));
+											lexResult.Tokens.Add(GetToken(currentText));
 											break;
 									}
 
@@ -215,7 +222,7 @@ internal class OCalcLexer
 					currentTokenText
 				);
 
-				lexResult.Tokens.AddRange(GetTokens(currentTokenText.ToString()));
+				lexResult.Tokens.Add(GetToken(currentTokenText.ToString()));
 				currentTokenText.Clear();
 			}
 
@@ -240,39 +247,56 @@ internal class OCalcLexer
 		if (twoCharOperatorMode == TwoCharOperatorMode.Possible)
 		{
 			twoCharOperatorMode = TwoCharOperatorMode.None;
-			tokens.Add(new Token(text.ToString(), TokenType.Operator));
+			var text1 = text.ToString();
+			switch (text1)
+			{
+				case "!":
+				case "+":
+				case "-":
+				case "/":
+				case "*":
+				case "%":
+				case "^":
+				case "&":
+				case "|":
+					text1 = "_." + text1;
+					tokens.Add(new Token(text1, TokenType.StaticMethod));
+					break;
+				default:
+					tokens.Add(new Token(text1, TokenType.Operator));
+					break;
+			}
+
 			text.Clear();
 		}
-
-		if (commentMode == CommentMode.Possible)
+		else if (commentMode == CommentMode.Possible)
 		{
 			commentMode = CommentMode.None;
-			tokens.Add(new Token("/", TokenType.Operator));
+			tokens.Add(new Token("_./", TokenType.StaticMethod));
 			text.Clear();
 		}
 	}
 
-	private static List<Token> GetTokens(string text)
+	private static Token GetToken(string text)
 	{
 		if (IsNumber(text))
 		{
-			return new List<Token> { new Token(text, TokenType.Number) };
+			return new Token(text, TokenType.Number);
 		}
 
 		if (IsBoolean(text))
 		{
-			return new List<Token> { new Token(text, TokenType.Boolean) };
+			return new Token(text, TokenType.Boolean);
 		}
 
 		return text switch
 		{
-			"delay" or "set" or "log" or "list" or "if" => new List<Token>
-				{
-					new Token("_", TokenType.Identifier),
-					new Token(".", TokenType.Operator),
-					new Token(text.UpperCaseFirstLetter(), TokenType.Identifier),
-				},
-			_ => new List<Token> { new Token(text, TokenType.Identifier) },
+			"==" or "!=" or ">=" or "<=" or "^^" or "||" or "&&"
+				=> new Token("_." + text, TokenType.StaticMethod),
+			"delay" or "set" or "log" or "list" or "if"
+				=> new Token("_." + text.UpperCaseFirstLetter(), TokenType.StaticMethod),
+			_
+				=> new Token(text, TokenType.Identifier),
 		};
 	}
 

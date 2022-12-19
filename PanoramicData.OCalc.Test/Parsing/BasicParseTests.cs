@@ -11,13 +11,13 @@ public class BasicParseTests : BaseTest
 
 	[Theory]
 	[InlineData(
-		"1 + 2 * sin(a + b * c) + 4",
-		"_.+(_.+(1, _.*(2, Math.Sin(_.+(a, _.*(b, c)))), 4)"
+		"1 + 2",
+		"_.+(1, 2)"
 		)
 	]
 	[InlineData(
-		"1 + 2",
-		"_.+(1, 2)"
+		"1 + 2 * sin(a + b * c) + 4",
+		"_.+(_.+(1, _.*(2, Math.Sin(_.+(a, _.*(b, c)))), 4)"
 		)
 	]
 	[InlineData(
@@ -47,7 +47,7 @@ public class BasicParseTests : BaseTest
 	]
 	[InlineData(
 		"log('a') && log('b')",
-		"_.&&(_.Log(a), _.Log(b))"
+		"_.&&(_.Log('a'), _.Log('b'))"
 		)
 	]
 	[InlineData(
@@ -57,37 +57,37 @@ public class BasicParseTests : BaseTest
 	]
 	[InlineData(
 		"set('a', list(1, 2, 3))",
-		"_.Set(a, _.List(1, 2, 3))"
+		"_.Set('a', _.List(1, 2, 3))"
 		)
 	]
 	[InlineData(
 		"a[1]",
-		"_.AtIndex(a, 1)"
+		"_.[](a, 1)"
 		)
 	]
 	[InlineData(
-		"delay(<TimeSpan>.FromSeconds(1))",
+		"delay(TimeSpan.FromSeconds(1))",
 		"_.Delay(TimeSpan.FromSeconds(1))"
 		)
 	]
 	[InlineData(
-		"<Task>.DelayAsync(1000)",
+		"Task.DelayAsync(1000)",
 		"Task.DelayAsync(1000)"
 		)
 	]
 	[InlineData(
-		"<Math>.Max(1,2)",
+		"Math.Max(1,2)",
 		"Math.Max(1, 2)"
 		)
 	]
 	[InlineData(
-		"<MerakiClient>(<MerakiClientOptions>('apiKey'))",
+		"MerakiClient(MerakiClientOptions('apiKey'))",
 		"MerakiClient.ctor(MerakiClientOptions.ctor('apiKey'))"
 		)
 	]
 	[InlineData(
 		"a ?? b ?? c",
-		"_.NullCoalesce(a, b, c)"
+		"_.??(_.??(a, b), c)"
 		)
 	]
 	[InlineData(
@@ -97,12 +97,12 @@ public class BasicParseTests : BaseTest
 	]
 	[InlineData(
 		"a == 1",
-		"_.Equals(a, 1)"
+		"_.==(a, 1)"
 		)
 	]
 	[InlineData(
 		"!a",
-		"_.Not(a)"
+		"_.!(a)"
 		)
 	]
 	[Trait("Parsing", "Basic")]
@@ -114,6 +114,7 @@ public class BasicParseTests : BaseTest
 		var parseResult = OCalcParser.Parse(lexResult);
 		parseResult.FailureText.Should().BeEmpty();
 		parseResult.Success.Should().BeTrue();
-		parseResult.ParseObject.ToString().Should().Be(expectedExecutionString);
+		var stringValue = parseResult.GetExpressionString();
+		stringValue.Should().Be(expectedExecutionString);
 	}
 }

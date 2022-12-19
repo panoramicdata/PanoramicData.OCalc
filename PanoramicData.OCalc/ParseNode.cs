@@ -2,14 +2,10 @@
 {
 	internal abstract class ParseNode
 	{
-		public ParseNode()
-		{
-			Parent = ParseObject.Root;
-		}
+		public FunctionParseNode? Parent { get; internal set; }
 
-		public ParseObject Parent { get; private set; }
+		internal Token? IdentifierToken { get; set; }
 
-		internal void SetParent(ParseObject parseObject)
-			=> Parent = parseObject;
+		internal abstract string GetExpressionString();
 	}
 }

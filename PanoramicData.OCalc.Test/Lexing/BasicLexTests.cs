@@ -17,10 +17,8 @@ public class BasicLexTests : BaseTest
 		)
 	]
 	[InlineData("	set(a, 1) // true",
-		"_;.;Set;(;a;,;1;)",
-		TokenType.Identifier,
-		TokenType.Operator,
-		TokenType.Identifier,
+		"_.Set;(;a;,;1;)",
+		TokenType.StaticMethod,
 		TokenType.Operator,
 		TokenType.Identifier,
 		TokenType.Operator,
@@ -46,25 +44,25 @@ public class BasicLexTests : BaseTest
 		)
 	]
 	[InlineData("1.1 + 2.2",
-		"1.1;+;2.2",
+		"1.1;_.+;2.2",
 		TokenType.Number,
-		TokenType.Operator,
+		TokenType.StaticMethod,
 		TokenType.Number)
 	]
 	[InlineData("(1 + 2) / 3",
-		"(;1;+;2;);/;3",
+		"(;1;_.+;2;);_./;3",
 		TokenType.Operator,
 		TokenType.Number,
-		TokenType.Operator,
+		TokenType.StaticMethod,
 		TokenType.Number,
 		TokenType.Operator,
-		TokenType.Operator,
+		TokenType.StaticMethod,
 		TokenType.Number)
 	]
 	[InlineData("a == 1 ? b : c",
-		"a;==;1;?;b;:;c",
+		"a;_.==;1;?;b;:;c",
 		TokenType.Identifier,
-		TokenType.Operator,
+		TokenType.StaticMethod,
 		TokenType.Number,
 		TokenType.Operator,
 		TokenType.Identifier,
@@ -84,10 +82,26 @@ public class BasicLexTests : BaseTest
 	]
 	[InlineData(
 		"true && false",
-		"true;&&;false",
+		"true;_.&&;false",
 		TokenType.Boolean,
-		TokenType.Operator,
+		TokenType.StaticMethod,
 		TokenType.Boolean)
+	]
+	[InlineData(
+		"!a",
+		"_.!;a",
+		TokenType.StaticMethod,
+		TokenType.Identifier)
+	]
+	[InlineData(
+		"Math.Max(1, 2)",
+		"Math.Max;(;1;,;2;)",
+		TokenType.Identifier,
+		TokenType.Operator,
+		TokenType.Number,
+		TokenType.Operator,
+		TokenType.Number,
+		TokenType.Operator)
 	]
 	[Trait("Lexing", "Tokenization")]
 	public void TokenizationTests(
