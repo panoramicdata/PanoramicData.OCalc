@@ -186,7 +186,5 @@ internal class OCalcParser
 	}
 
 	private static bool FirstIsLesserThanSecond(string first, string second) =>
-		(first == "_.+" || first == "_.-")
-		&&
-		!(second == "_.+" || second == "_.-");
+		(first == "_.+" || first == "_.-");
 }

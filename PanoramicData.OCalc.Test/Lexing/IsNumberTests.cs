@@ -6,6 +6,8 @@ namespace PanoramicData.OCalc.Test.Lexing;
 public class IsNumberTests
 {
 	[Theory]
+	[InlineData("-1", true)]
+	[InlineData("-9.1", true)]
 	[InlineData("0", true)]
 	[InlineData("1..1", false)]
 	[InlineData("2.", false)]

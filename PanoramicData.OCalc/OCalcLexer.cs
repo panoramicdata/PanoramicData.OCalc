@@ -27,7 +27,8 @@ internal class OCalcLexer
 							ref twoCharOperatorMode,
 							ref commentMode,
 							lexResult.Tokens,
-							currentTokenText
+							currentTokenText,
+							true
 						);
 
 						// Add the current token to the list
@@ -157,6 +158,7 @@ internal class OCalcLexer
 								case TwoCharOperatorMode.None:
 									lexResult.Tokens.Add(GetToken(currentTokenText.ToString()));
 									currentTokenText.Clear();
+									//currentTokenText.Append(c); // Needs a fix
 									lexResult.Tokens.Add(new Token(c, TokenType.Operator));
 									break;
 								default:
@@ -219,7 +221,8 @@ internal class OCalcLexer
 					ref twoCharOperatorMode,
 					ref commentMode,
 					lexResult.Tokens,
-					currentTokenText
+					currentTokenText,
+					true
 				);
 
 				lexResult.Tokens.Add(GetToken(currentTokenText.ToString()));
@@ -242,17 +245,23 @@ internal class OCalcLexer
 		ref TwoCharOperatorMode twoCharOperatorMode,
 		ref CommentMode commentMode,
 		List<Token> tokens,
-		StringBuilder text)
+		StringBuilder text,
+		bool isWhiteSpaceOrEol = false)
 	{
+		var text1 = text.ToString();
+		if (isWhiteSpaceOrEol && text1 == "-")
+		{
+			tokens.Add(new Token("_.-", TokenType.StaticMethod));
+			return;
+		}
+
 		if (twoCharOperatorMode == TwoCharOperatorMode.Possible)
 		{
 			twoCharOperatorMode = TwoCharOperatorMode.None;
-			var text1 = text.ToString();
 			switch (text1)
 			{
 				case "!":
 				case "+":
-				case "-":
 				case "/":
 				case "*":
 				case "%":
@@ -262,6 +271,8 @@ internal class OCalcLexer
 					text1 = "_." + text1;
 					tokens.Add(new Token(text1, TokenType.StaticMethod));
 					break;
+				case "-":
+					return;
 				default:
 					tokens.Add(new Token(text1, TokenType.Operator));
 					break;
@@ -310,10 +321,18 @@ internal class OCalcLexer
 			return false;
 		}
 
+		var index = 0;
 		foreach (var x in currentTokenText)
 		{
 			switch (x)
 			{
+				case '-':
+					if (index != 0)
+					{
+						return false;
+					}
+
+					break;
 				case '.':
 					if (currentTokenText.Count(c => c == '.') > 1)
 					{
@@ -326,8 +345,11 @@ internal class OCalcLexer
 					{
 						return false;
 					}
+
 					break;
 			}
+
+			index++;
 		}
 
 		return !currentTokenText.EndsWith('.');

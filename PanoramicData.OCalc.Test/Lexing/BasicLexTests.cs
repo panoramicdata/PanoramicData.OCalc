@@ -16,6 +16,28 @@ public class BasicLexTests : BaseTest
 		TokenType.Number
 		)
 	]
+	[InlineData(
+		"-1",
+		"-1",
+		TokenType.Number
+		)
+	]
+	[InlineData(
+		"-1 + -1",
+		"-1;_.+;-1",
+		TokenType.Number,
+		TokenType.StaticMethod,
+		TokenType.Number
+		)
+	]
+	[InlineData(
+		"-1+-1",
+		"-1;_.+;-1",
+		TokenType.Number,
+		TokenType.StaticMethod,
+		TokenType.Number
+		)
+	]
 	[InlineData("	set(a, 1) // true",
 		"_.Set;(;a;,;1;)",
 		TokenType.StaticMethod,
