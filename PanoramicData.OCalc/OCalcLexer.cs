@@ -148,6 +148,22 @@ internal class OCalcLexer
 									_ => CommentMode.True
 								};
 								continue;
+							case '-':
+								var currentTokenTextString = currentTokenText.ToString();
+								switch (currentTokenTextString)
+								{
+									case "+":
+									case "-":
+									case "/":
+									case "*":
+										lexResult.Tokens.Add(
+											new Token($"_.{currentTokenTextString}",
+											TokenType.StaticMethod));
+										currentTokenText.Clear();
+										break;
+								}
+								currentTokenText.Append('-');
+								continue;
 						}
 
 						// Add the current token to the list
@@ -158,9 +174,9 @@ internal class OCalcLexer
 								case TwoCharOperatorMode.None:
 									lexResult.Tokens.Add(GetToken(currentTokenText.ToString()));
 									currentTokenText.Clear();
-									//currentTokenText.Append(c); // Needs a fix
-									lexResult.Tokens.Add(new Token(c, TokenType.Operator));
-									break;
+									currentTokenText.Append(c);
+									//lexResult.Tokens.Add(new Token(c, TokenType.Operator));
+									continue;
 								default:
 									var compoundTokenString = currentTokenText.ToString() + c;
 									switch (compoundTokenString)
@@ -306,6 +322,8 @@ internal class OCalcLexer
 				=> new Token("_." + text, TokenType.StaticMethod),
 			"delay" or "set" or "log" or "list" or "if"
 				=> new Token("_." + text.UpperCaseFirstLetter(), TokenType.StaticMethod),
+			","
+				=> new Token(text, TokenType.Operator),
 			_
 				=> new Token(text, TokenType.Identifier),
 		};
