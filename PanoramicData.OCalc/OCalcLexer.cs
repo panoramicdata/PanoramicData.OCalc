@@ -3,7 +3,7 @@ using System.Text;
 
 namespace PanoramicData.OCalc;
 
-internal class OCalcLexer
+internal static class OCalcLexer
 {
 	internal static LexResult Lex(string expressionText)
 	{

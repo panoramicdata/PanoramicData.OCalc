@@ -2,7 +2,7 @@
 
 internal class OCalcInternalExpression
 {
-	private ParseResult _parseResult;
+	private readonly ParseResult _parseResult;
 
 	public OCalcInternalExpression(ParseResult parseResult)
 	{
