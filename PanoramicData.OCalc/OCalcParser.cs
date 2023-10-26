@@ -1,6 +1,6 @@
 ﻿namespace PanoramicData.OCalc;
 
-internal class OCalcParser
+internal static class OCalcParser
 {
 	internal static readonly List<Token> _emptyTokenList = new();
 

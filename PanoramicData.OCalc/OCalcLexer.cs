@@ -3,7 +3,7 @@ using System.Text;
 
 namespace PanoramicData.OCalc;
 
-internal class OCalcLexer
+internal static class OCalcLexer
 {
 	internal static LexResult Lex(string expressionText)
 	{
@@ -169,37 +169,36 @@ internal class OCalcLexer
 						// Add the current token to the list
 						if (currentTokenText.Length > 0)
 						{
-							switch (twoCharOperatorMode)
+							if(twoCharOperatorMode == TwoCharOperatorMode.None)
 							{
-								case TwoCharOperatorMode.None:
-									lexResult.Tokens.Add(GetToken(currentTokenText.ToString()));
-									currentTokenText.Clear();
-									currentTokenText.Append(c);
-									//lexResult.Tokens.Add(new Token(c, TokenType.Operator));
-									continue;
-								default:
-									var compoundTokenString = currentTokenText.ToString() + c;
-									switch (compoundTokenString)
-									{
-										case "!=":
-										case "??":
-										case ">=":
-										case "<=":
-										case "^^":
-										case "||":
-										case "&&":
-										case "?.":
-										case "==":
-											lexResult.Tokens.Add(new Token("_." + compoundTokenString, TokenType.StaticMethod));
-											break;
-										default:
-											var currentText = currentTokenText.ToString();
-											lexResult.Tokens.Add(GetToken(currentText));
-											break;
-									}
+								lexResult.Tokens.Add(GetToken(currentTokenText.ToString()));
+								currentTokenText.Clear();
+								currentTokenText.Append(c);
 
-									twoCharOperatorMode = TwoCharOperatorMode.None;
-									break;
+							}
+							else
+							{
+								var compoundTokenString = currentTokenText.ToString() + c;
+								switch (compoundTokenString)
+								{
+									case "!=":
+									case "??":
+									case ">=":
+									case "<=":
+									case "^^":
+									case "||":
+									case "&&":
+									case "?.":
+									case "==":
+										lexResult.Tokens.Add(new Token("_." + compoundTokenString, TokenType.StaticMethod));
+										break;
+									default:
+										var currentText = currentTokenText.ToString();
+										lexResult.Tokens.Add(GetToken(currentText));
+										break;
+								}
+
+								twoCharOperatorMode = TwoCharOperatorMode.None;
 							}
 
 							currentTokenText.Clear();

@@ -2,7 +2,7 @@
 
 public class OCalcExpression
 {
-	private string _expressionText;
+	private readonly string _expressionText;
 
 	public OCalcExpression(string expressionText)
 	{
